@@ -394,13 +394,19 @@ class Harvest(object):
         return self._get('/people/{0}/entries?from={1}&to={2}'.format(user_id,start,stop))
 
     def _request(self, method='GET', path='/', data=None):
+        if method == 'GET' and data is not None:
+            raise HarvestError('GET requests should not provide a body.')
+
         url = '{self.uri}{path}'.format(self=self, path=path)
         kwargs = {
             'method'  : method,
             'url'     : '{self.uri}{path}'.format(self=self, path=path),
             'headers' : self.__headers,
-            'data'   : json.dumps(data),
         }
+
+        if method != 'GET':
+            kwargs['data'] = json.dumps(data)
+
         if self.auth == 'Basic':
             requestor = requests
             if 'Authorization' not in self.__headers:
